@@ -4,6 +4,7 @@ A full-stack web application built with **Next.js 14 (App Router)** as part of M
 
 The app allows food lovers to browse community-shared meals and contribute their own recipes with images.
 
+https://foodies-nextjs-app.vercel.app/
 ---
 
 ## 🎯 Purpose
