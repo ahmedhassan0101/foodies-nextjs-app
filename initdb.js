@@ -2,19 +2,18 @@
  * initdb.js — one-time seed script (run locally, never on Vercel)
  *
  * What it does:
- *  1. Reads each dummy meal image from /assets/
- *  2. Uploads it to Cloudinary under the "foodies" folder
- *  3. Inserts the meal record into MongoDB with the Cloudinary URL
+ * 1. Reads each dummy meal image from /public/
+ * 2. Uploads it to Cloudinary under the "foodies" folder in parallel
+ * 3. Inserts the meal record into MongoDB with the Cloudinary URL
  *
  * Usage:
- *   node -r dotenv/config initdb.js
+ * node initdb.js
  *
- * Run once. Re-running will skip meals whose slug already exists.
+ * Run once. Re-running will skip meals whose title already exists.
  */
 
 const mongoose = require("mongoose");
 const cloudinary = require("cloudinary").v2;
-const fs = require("fs");
 const path = require("path");
 const slugify = require("slugify");
 require("dotenv").config({ path: ".env.local" });
@@ -107,56 +106,67 @@ const dummyMeals = [
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function uploadToCloudinary(filePath, publicId) {
-  return new Promise((resolve, reject) => {
-    cloudinary.uploader.upload(
-      filePath,
-      { folder: "foodies", public_id: publicId, overwrite: false },
-      (error, result) => {
-        if (error) return reject(error);
-        resolve(result.secure_url);
-      },
-    );
+async function uploadToCloudinary(filePath, publicId) {
+  const result = await cloudinary.uploader.upload(filePath, {
+    folder: "foodies",
+    public_id: publicId,
+    overwrite: false,
   });
+  return result.secure_url;
 }
 
 // ── Main ─────────────────────────────────────────────────────────────────────
 
 async function seed() {
-  await mongoose.connect(process.env.MONGODB_URI);
-  console.log("✅ Connected to MongoDB");
+  try {
+    await mongoose.connect(process.env.MONGODB_URI);
+    console.log("✅ Connected to MongoDB");
 
-  for (const meal of dummyMeals) {
-    const slug = slugify(meal.title, { lower: true });
+    const seedPromises = dummyMeals.map(async (meal) => {
+      try {
+        const exists = await Meal.findOne({ title: meal.title });
+        if (exists) {
+          console.log(`⏭  Skipping "${meal.title}" (already exists)`);
+          return;
+        }
 
-    const exists = await Meal.findOne({ slug });
-    if (exists) {
-      console.log(`⏭  Skipping "${meal.title}" (already exists)`);
-      continue;
-    }
+        const slug = slugify(meal.title, { lower: true });
 
-    const imagePath = path.join(__dirname, "public", meal.imageFile);
-    const imageUrl = await uploadToCloudinary(imagePath, slug);
-    console.log(`☁️  Uploaded image for "${meal.title}"`);
+        const imagePath = path.join(__dirname, "public", meal.imageFile);
+        const imageUrl = await uploadToCloudinary(imagePath, slug);
 
-    await Meal.create({
-      title: meal.title,
-      slug,
-      summary: meal.summary,
-      instructions: meal.instructions,
-      image: imageUrl,
-      creator: meal.creator,
-      creator_email: meal.creator_email,
+        console.log(`☁️  Uploaded image for "${meal.title}"`);
+
+        await Meal.create({
+          title: meal.title,
+          slug,
+          summary: meal.summary,
+          instructions: meal.instructions,
+          image: imageUrl,
+          creator: meal.creator,
+          creator_email: meal.creator_email,
+        });
+
+        console.log(`🍽  Inserted "${meal.title}"`);
+      } catch (mealError) {
+        console.error(
+          `❌ Failed to process "${meal.title}":`,
+          mealError.message,
+        );
+      }
     });
 
-    console.log(`🍽  Inserted "${meal.title}"`);
+    // الانتظار حتى تنتهي جميع الوجبات
+    await Promise.all(seedPromises);
+  } catch (dbError) {
+    console.error("❌ Database connection failed:", dbError);
+  } finally {
+    if (mongoose.connection.readyState === 1) {
+      await mongoose.disconnect();
+      console.log("✅ Disconnected from MongoDB. Seeding complete.");
+    }
+    process.exit(0);
   }
-
-  await mongoose.disconnect();
-  console.log("✅ Seeding complete.");
 }
 
-seed().catch((err) => {
-  console.error("❌ Seeding failed:", err);
-  process.exit(1);
-});
+seed();

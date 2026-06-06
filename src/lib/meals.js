@@ -1,5 +1,7 @@
+// src\lib\meals.js
 import slugify from "slugify";
 import xss from "xss";
+import crypto from "crypto";
 
 import { connectDB } from "@/lib/db";
 import { uploadImage } from "@/lib/cloudinary";
@@ -28,7 +30,9 @@ export async function getMeal(slug) {
 export async function saveMeal(meal) {
   await connectDB();
 
-  meal.slug = slugify(meal.title, { lower: true });
+  const baseSlug = slugify(meal.title, { lower: true });
+  const randomHex = crypto.randomBytes(3).toString("hex");
+  meal.slug = `${baseSlug}-${randomHex}`;
 
   // Strip any malicious HTML from instructions before storing.
   // Instructions are later rendered with dangerouslySetInnerHTML,

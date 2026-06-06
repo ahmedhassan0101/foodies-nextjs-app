@@ -1,8 +1,9 @@
+// src\lib\cloudinary.js
 import { v2 as cloudinary } from "cloudinary";
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key   : process.env.CLOUDINARY_API_KEY,
+  api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
@@ -13,6 +14,17 @@ cloudinary.config({
  *
  * Returns the secure URL of the uploaded image.
  */
+
+async function uploadToCloudinary(filePath, publicId) {
+  const result = await cloudinary.uploader.upload(filePath, {
+    folder: "foodies",
+    public_id: publicId,
+    overwrite: false,
+  });
+  return result.secure_url;
+}
+
+
 export async function uploadImage(buffer, fileName) {
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(

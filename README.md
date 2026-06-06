@@ -65,7 +65,7 @@ npm install
 cp .env.local.example .env.local
 
 # Seed the database (one-time)
-node -r dotenv/config initdb.js
+node initdb.js
 
 # Start the dev server
 npm run dev

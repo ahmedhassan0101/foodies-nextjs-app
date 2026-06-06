@@ -1,3 +1,4 @@
+// src\lib\models\meal.model.js
 import mongoose from "mongoose";
 
 const mealSchema = new mongoose.Schema({
@@ -5,7 +6,7 @@ const mealSchema = new mongoose.Schema({
   slug: { type: String, required: true, unique: true },
   summary: { type: String, required: true },
   instructions: { type: String, required: true },
-  image: { type: String, required: true }, // Cloudinary public_id
+  image: { type: String, required: true }, // Cloudinary secure_url
   creator: { type: String, required: true },
   creator_email: { type: String, required: true },
 });

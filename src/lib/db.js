@@ -1,3 +1,4 @@
+// src\lib\db.js
 import mongoose from "mongoose";
 
 // We reuse the same connection across requests in development (hot reload)

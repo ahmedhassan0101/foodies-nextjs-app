@@ -10,6 +10,23 @@ import classes from "./page.module.css";
 // while the DB fetch is still in progress.
 async function MealsList() {
   const meals = await getMeals();
+
+  if (!meals || meals.length === 0) {
+    return (
+      <div className={classes.emptyState}>
+        <h2>No meals found!</h2>
+        <p>
+          It looks a bit empty here. Be the first one to share a delicious
+          recipe!
+        </p>
+        <div className={classes.cta}>
+          <Link href="/meals/share">Share a Meal Now</Link>
+        </div>
+      </div>
+    );
+  }
+
+  // لو في وجبات، اعرض الشبكة العادية
   return <MealsGrid meals={meals} />;
 }
 
