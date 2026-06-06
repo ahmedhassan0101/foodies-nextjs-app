@@ -1,0 +1,64 @@
+.picker {
+  margin: 2rem 0;
+}
+
+.controls {
+  display: flex;
+  align-items: center; 
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 480px) {
+  .controls {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.picker .input {
+  display: none;
+}
+
+.picker .button {
+  border: 0;
+  padding: 0.6rem 1.5rem;
+  background: #454952;
+  color: #ddd6cb;
+  border-radius: 6px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.picker .button:hover,
+.picker .button:focus {
+  background: #545965;
+  color: #ffffff;
+}
+
+.preview {
+  width: 10rem;
+  height: 10rem;
+  border: 2px dashed #454952; 
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.15); 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  color: #a4abb9;
+  position: relative;
+  overflow: hidden; 
+}
+
+.preview p {
+  margin: 0;
+  padding: 1rem;
+  font-size: 0.9rem;
+}
+
+.preview img {
+  object-fit: cover;
+}
